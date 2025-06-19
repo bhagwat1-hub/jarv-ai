@@ -1,0 +1,37 @@
+import React, { useState, useEffect } from "react";
+const ws = new WebSocket("ws://localhost:8000/ws");
+
+function App() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+
+  useEffect(() => {
+    ws.onmessage = e => {
+      const msg = JSON.parse(e.data).reply;
+      setMessages(prev => [...prev, { from: "jarvis", text: msg }]);
+    };
+  }, []);
+
+  const sendMessage = () => {
+    setMessages(prev => [...prev, { from: "user", text: input }]);
+    ws.send(JSON.stringify({ text: input }));
+    setInput("");
+  };
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>JARVIS Dashboard</h1>
+      <div style={{ border: "1px solid #333", height: "300px", overflowY: "scroll", marginBottom: "10px" }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ textAlign: m.from === "user" ? "right" : "left" }}>
+            <b>{m.from}:</b> {m.text}
+          </div>
+        ))}
+      </div>
+      <input value={input} onChange={e => setInput(e.target.value)} placeholder="Say something..." style={{ width: "80%" }} />
+      <button onClick={sendMessage}>Send</button>
+    </div>
+  );
+}
+
+export default App;
